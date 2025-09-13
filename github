@@ -1,0 +1,87 @@
+// frontend/src/App.jsx
+import React, { useState } from 'react';
+
+export default function App() {
+  const [messages, setMessages] = useState([
+    { from: 'bot', text: 'Hi! Ask me anything about campus info.' },
+  ]);
+  const [input, setInput] = useState('');
+
+  async function sendMessage() {
+    if (!input.trim()) return;
+    const userMsg = input.trim();
+    setMessages((prev) => [...prev, { from: 'user', text: userMsg }]);
+    setInput('');
+
+    // Call backend API
+    const res = await fetch('http://localhost:5000/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userMsg }),
+    });
+    const data = await res.json();
+    setMessages((prev) => [...prev, { from: 'bot', text: data.reply }]);
+  }
+
+  return (
+    <div style={{ maxWidth: 600, margin: 'auto', padding: 20 }}>
+      <h2>Campus Info Chatbot</h2>
+      <div
+        style={{
+          border: '1px solid #ccc',
+          height: 400,
+          overflowY: 'scroll',
+          padding: 10,
+          marginBottom: 10,
+          borderRadius: 8,
+        }}
+      >
+        {messages.map((m, i) => (
+          <div
+            key={i}
+            style={{
+              textAlign: m.from === 'user' ? 'right' : 'left',
+              marginBottom: 8,
+            }}
+          >
+            <span
+              style={{
+                backgroundColor: m.from === 'user' ? '#007bff' : '#e5e5ea',
+                color: m.from === 'user' ? 'white' : 'black',
+                padding: '8px 12px',
+                borderRadius: 20,
+                display: 'inline-block',
+                maxWidth: '80%',
+                wordWrap: 'break-word',
+              }}
+            >
+              {m.text}
+            </span>
+          </div>
+        ))}
+      </div>
+      <input
+        type="text"
+        value={input}
+        placeholder="Type your question..."
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+        style={{ width: '80%', padding: 10, borderRadius: 8, border: '1px solid #ccc' }}
+      />
+      <button
+        onClick={sendMessage}
+        style={{
+          padding: '10px 20px',
+          marginLeft: 10,
+          borderRadius: 8,
+          border: 'none',
+          backgroundColor: '#007bff',
+          color: 'white',
+          cursor: 'pointer',
+        }}
+      >
+        Send
+      </button>
+    </div>
+  );
+}
